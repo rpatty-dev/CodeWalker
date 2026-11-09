@@ -81,4 +81,5 @@ if [ -z "$CW_EXE" ]; then
 fi
 
 echo "[*] Launching CodeWalker from: $CW_EXE"
-"$WHISKY_EXEC" run "$BOTTLE_NAME" "$CW_EXE" "$@"
+eval "$("$WHISKY_CMD" shellenv "$BOTTLE_NAME")"
+exec wine64 "$CW_EXE" "$@"

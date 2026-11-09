@@ -1,0 +1,81 @@
+name: Build CodeWalker
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore NuGet Packages
+      run: nuget restore CodeWalker.sln
+
+    - name: Build CodeWalker (Release x64)
+      run: msbuild CodeWalker\CodeWalker.csproj /p:Configuration=Release /p:Platform=AnyCPU /p:OutputPath="..\bin\Release\net48\"
+
+    - name: Assemble Release Bundle
+      shell: pwsh
+      run: |
+        $outputDir = "bin\Release\net48"
+        if (!(Test-Path $outputDir)) {
+          New-Item -ItemType Directory -Force -Path $outputDir
+        }
+        # Copy compiled shaders
+        Copy-Item -Recurse -Force "Shaders" "$outputDir\Shaders"
+        # Copy icons if available
+        if (Test-Path "icons") {
+          Copy-Item -Recurse -Force "icons" "$outputDir\icons"
+        }
+        # Copy documentation
+        Copy-Item -Force "README.md" "$outputDir\"
+        Copy-Item -Force "Notice.txt" "$outputDir\"
+
+        # Compress bundle
+        Compress-Archive -Path "$outputDir\*" -DestinationPath "CodeWalker-Windows-x64.zip" -Force
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CodeWalker-Windows-x64
+        path: CodeWalker-Windows-x64.zip
+        retention-days: 30
+
+    - name: Create Release
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: latest
+        name: "CodeWalker Latest Build"
+        body: |
+          Automated build of CodeWalker from commit ${{ github.sha }}.
+          Includes:
+          - Pre-compiled `CodeWalker.exe`
+          - Complete DirectX 11 `.cso` shader cache
+          - Required SharpDX and DockPanelSuite runtime libraries
+          
+          For running on macOS via Whisky/Wine, see `MAC_GUIDE.md` in the repository.
+        files: CodeWalker-Windows-x64.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

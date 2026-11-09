@@ -1,6 +1,7 @@
 <div align="center">
     <h1>CodeWalker by dexyfex</h1>
     This program is for viewing the contents of GTAV RPF archives.
+    <p><strong>macOS Users:</strong> See <a href="MAC_GUIDE.md">MAC_GUIDE.md</a> for running CodeWalker on Mac via the lightweight Whisky/GPTK translation layer.</p>
 </div>
 
 ## Requirements:

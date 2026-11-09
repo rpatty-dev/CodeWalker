@@ -48,6 +48,7 @@ fi
 # 3. Locate CodeWalker.exe
 CW_EXE=""
 CANDIDATE_PATHS=(
+    "$REPO_ROOT/app/CodeWalker30_dev46/CodeWalker.exe"
     "$REPO_ROOT/bin/Release/net48/CodeWalker.exe"
     "$REPO_ROOT/CodeWalker/bin/Release/net48/CodeWalker.exe"
     "$REPO_ROOT/CodeWalker.exe"
